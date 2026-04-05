@@ -1,38 +1,40 @@
-import { Component, ReactNode } from 'react'
+import { useState, useEffect } from 'react'
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// 🌟 錯誤捕捉器：只要白板一當機，就立刻把當機原因印在畫面上！
-class CatchError extends Component<{children: ReactNode}, {error: any}> {
-  state = { error: null }
-  static getDerivedStateFromError(error: any) { 
-    return { error } 
-  }
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
-          <h2 style={{ color: '#d32f2f' }}>🚨 抓到了！網頁版當機的原因是：</h2>
-          <div style={{ background: '#ffebee', padding: '20px', borderRadius: '8px' }}>
-            <pre style={{ color: '#b71c1c', whiteSpace: 'pre-wrap' }}>
-              {String(this.state.error)}
-            </pre>
-          </div>
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
-
 export default function App() {
+  const [errorMsg, setErrorMsg] = useState("")
+
+  // 🌟 全域雷達：專門捕捉 React 警報器抓不到的「背景非同步錯誤」
+  useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent) => {
+      setErrorMsg(event.message || "發生未知錯誤")
+    }
+    // 監聽整個視窗的錯誤
+    window.addEventListener('error', handleGlobalError)
+    
+    return () => {
+      window.removeEventListener('error', handleGlobalError)
+    }
+  }, [])
+
+  if (errorMsg) {
+    return (
+      <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+        <h2 style={{ color: '#d32f2f' }}>🚨 抓到背景當機原因了！</h2>
+        <div style={{ background: '#ffebee', padding: '20px', borderRadius: '8px' }}>
+          <pre style={{ color: '#b71c1c', fontSize: '16px' }}>
+            {errorMsg}
+          </pre>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    // 強制設定長寬為 100%，排除被 CSS 壓縮成 0 的可能性
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <CatchError>
-        {/* 換一個全新的鑰匙，排除舊資料干擾 */}
-        <Tldraw persistenceKey="my-new-board-test-99" />
-      </CatchError>
+    <div style={{ position: 'fixed', inset: 0 }}>
+      {/* 🌟 關鍵：我們這次「不加上」 persistenceKey，讓它變成一個純粹的、不碰觸瀏覽器資料庫的白板 */}
+      <Tldraw />
     </div>
   )
 }
