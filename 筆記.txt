@@ -1,0 +1,42 @@
+安裝路徑:
+打開桌面的 my-board 資料夾。
+
+進入 src-tauri 資料夾。
+
+進入 target > release > bundle。
+
+最後進入 msi 資料夾。
+
+你會看到一個副檔名為 .msi 的檔案（例如：my-board_0.1.0_x64_en-US.msi）。
+
+
+進入正確資料夾（進房間）：
+
+Bash
+cd Desktop\my-board
+
+執行啟動指令（下指令）：
+
+Bash
+npx tauri dev
+
+
+crtl+c  終止批次工作 y
+
+重新打包 (Build)
+回到黑畫面 (CMD)，確保你在 my-board 資料夾，輸入：
+
+Bash
+npx tauri build
+
+打包跑完（出現 Finished）後，去這個老地方找新的安裝包：
+src-tauri\target\release\bundle\msi
+
+執行那個新的 .msi 檔案。
+
+安裝完成後，從開始功能表打開 my-board
+
+備份檔 在下載區
+
+呼叫：打開 Chrome 或 Edge 瀏覽器，在網址列輸入：
+http://localhost:5173
