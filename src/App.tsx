@@ -1,40 +1,61 @@
-import { useState, useEffect } from 'react'
-import { Tldraw } from 'tldraw'
+import { 
+  Tldraw, 
+  getSnapshot, 
+  DefaultMainMenu, 
+  DefaultMainMenuContent, 
+  TldrawUiMenuItem, 
+  useEditor 
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
-export default function App() {
-  const [errorMsg, setErrorMsg] = useState("")
+function CustomMainMenu() {
+  const editor = useEditor()
 
-  // 🌟 全域雷達：專門捕捉 React 警報器抓不到的「背景非同步錯誤」
-  useEffect(() => {
-    const handleGlobalError = (event: ErrorEvent) => {
-      setErrorMsg(event.message || "發生未知錯誤")
+  const handleDownload = () => {
+    try {
+      const snapshot = getSnapshot(editor.store)
+      const data = JSON.stringify(snapshot)
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'my-board-backup.tldr'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      alert("✨ 備份成功！檔案已存入下載資料夾。")
+    } catch (e) {
+      alert("備份失敗：" + e)
     }
-    // 監聽整個視窗的錯誤
-    window.addEventListener('error', handleGlobalError)
-    
-    return () => {
-      window.removeEventListener('error', handleGlobalError)
-    }
-  }, [])
-
-  if (errorMsg) {
-    return (
-      <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
-        <h2 style={{ color: '#d32f2f' }}>🚨 抓到背景當機原因了！</h2>
-        <div style={{ background: '#ffebee', padding: '20px', borderRadius: '8px' }}>
-          <pre style={{ color: '#b71c1c', fontSize: '16px' }}>
-            {errorMsg}
-          </pre>
-        </div>
-      </div>
-    )
   }
 
   return (
+    <DefaultMainMenu>
+      <div style={{ padding: '4px' }}>
+        <TldrawUiMenuItem
+          id="download-file"
+          label="📥 下載備份 (.tldr)"
+          readonlyOk
+          onSelect={handleDownload}
+        />
+      </div>
+      <DefaultMainMenuContent />
+    </DefaultMainMenu>
+  )
+}
+
+export default function App() {
+  return (
     <div style={{ position: 'fixed', inset: 0 }}>
-      {/* 🌟 關鍵：我們這次「不加上」 persistenceKey，讓它變成一個純粹的、不碰觸瀏覽器資料庫的白板 */}
-      <Tldraw />
+      <Tldraw 
+        // 加上這個，瀏覽器就會自動記住你畫的東西
+        persistenceKey="my-unique-board-vercel"
+        // 加上這個，左上角選單就會有「下載備份」按鈕
+        components={{
+          MainMenu: CustomMainMenu,
+        }}
+      />
     </div>
   )
 }
